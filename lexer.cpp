@@ -86,11 +86,11 @@ int calcLex()
         //this line must go below the followingChars checking, because otherwise you get double chars in your token info
         calcTextAppend(currentChar);
 
-        //checks for identifier strings, must only use letters
-        if( (currentChar >= 'A' && currentChar <= 'Z') || (currentChar >= 'a' && currentChar <= 'z'))
+        //checks for identifier strings only starting with letters and underscores
+        if( isalpha(currentChar) || (currentChar == '_')
         {
-            //messy line, but gets new char and checks between capital letters and lowercase letters on the ascii table
-            while(((currentChar = filestream.get()) >= 'A' && currentChar <= 'Z') || (currentChar >= 'a' && currentChar <= 'z'))
+            //messy line, but gets new char and checks for any letters, underscores, and digits
+            while( isalnum(currentChar = filestream.get()) || (currentChar == '_'))
             {
                 calcTextAppend(currentChar);
             }
@@ -102,19 +102,19 @@ int calcLex()
         }
 
         //if the current char is a number
-        if((currentChar >= '0' && currentChar <= '9'))
+        if(isdigit(currentChar))
         {
-            while ( ((currentChar = filestream.get()) >= '0' && currentChar <= '9') || currentChar == '.')
+            while ( isdigit(currentChar = filestream.get()) || currentChar == '.')
 			      {
 				        if (currentChar == '.')
 				        {
                   calcTextAppend(currentChar);
 					        currentChar = filestream.get();
-					        if (currentChar < '0' || currentChar > '9')
+					        if (!isdigit(currentChar))
 					        {
 						        return 10;
 					        }
-					        while (currentChar >= '0' && currentChar <= '9')
+					        while (isdigit(currentChar))
 					        {
 						        calcTextAppend(currentChar);
 						        currentChar = filestream.get();
