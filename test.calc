@@ -1,11 +1,7 @@
-3 + 4 + 5
-
 identify := zak
-/* what is going on here*/
-
+/* what is going on here */
 amy := 3333
 zak := 4444
-
 write zak
 read amy
 write amy

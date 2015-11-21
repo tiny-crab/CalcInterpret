@@ -34,6 +34,5 @@ token calcLex();
 void match(token expectedToken);
 int calcParse();
 bool followingChars(string target, char currentChar, token curToken);
-string translation(int identifier);
 
 #endif /* calcLex_h */

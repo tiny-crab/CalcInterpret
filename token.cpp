@@ -19,7 +19,7 @@ int token::type()
 
 void token::type(int change)
 {
-    tokenData = change;
+    tokenType = change;
 }
 
 string token::typeToString()
@@ -36,7 +36,7 @@ string token::typeToString()
     case 8: return "Right Parenthesis";
     case 9: return "Numeric Constant";
     case 10: return "Unknown Token Error";
-    case 11: return "Issue with Parentheses";
+    case 11: return "Issue with numConsts";
     default: return "This error isn't known.";
   }
 }

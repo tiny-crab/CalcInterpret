@@ -1,5 +1,6 @@
 #include "calcLex.h"
 
+token curToken;
 //this function opens the "filestream" var and returns true or false for success
 ifstream filestream;
 
@@ -13,7 +14,7 @@ bool calcLexOpen(const char filename[])
 //this function finds the next token and outputs it
 token calcLex()
 {
-    token curToken;
+    curToken.clearData();
     char currentChar;
 
     while(1) //infinite loop, breaks through a return statement
@@ -69,15 +70,16 @@ token calcLex()
             return curToken;
         }
 
+        //if this is put above the followingChars, it adds a duplicate letter.
+        curToken.appendChar(currentChar);
+
         //checks for identifier strings only starting with letters and underscores
         if( isalpha(currentChar) || (currentChar == '_') )
         {
-            //messy line, but gets new char and checks for any letters, underscores, and digits
             while( isalnum(currentChar = filestream.get()) || (currentChar == '_'))
             {
                 curToken.appendChar(currentChar);
             }
-
             //once the currentChar falls off the end of the identifier string, it must hop back to read the next one
             filestream.unget();
             //returns the identifier int
@@ -154,7 +156,6 @@ token calcLex()
         curToken.type(unknownError);
         return curToken;
     }
-
     curToken.type(unknownError); //this should never get here
     return curToken;
 }
