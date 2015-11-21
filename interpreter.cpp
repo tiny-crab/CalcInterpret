@@ -37,26 +37,26 @@ void fctr();
 void fctrTail();
 void match();
 
-int token;
+token curToken;
 
 int calcParse()
 {
-  token = calcLex();
+  curToken = calcLex();
   prgm();
   return 0;
 }
 
 void match(int expectedToken)
 {
-  if(token == expectedToken)
+  if(curToken == expectedToken)
   {
-    if(token != endOfFileSym)
+    if(curToken != endOfFileSym)
     {
-      token == calcLex();
+      curToken == calcLex();
     }
     else
     {
-      cout << "Token " << expectedToken << " expected, but instead found: " << calcText << endl;
+      cout << "Token " << expectedToken << " expected, but instead found: " << curToken.data() << endl;
     }
   }
 }
@@ -79,20 +79,10 @@ int stmtList()
 
 int stmt()
 {
-  if(token == identifier)
-  {
 
-  }
-  else if(token == readSym)
-  {
+}
 
-  }
-  else if(token = writeSym)
-  {
+bool followingTokens()
+{
 
-  }
-  else
-  {
-
-  }
 }

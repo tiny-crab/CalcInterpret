@@ -8,18 +8,32 @@
 
 using namespace std;
 
-enum calcGrammarTokens {
-    endOfFileSym = 0, assignSym, readSym, writeSym, identifier,
-    addOp, multOp, leftParen, rightParen, numConst};
+class token
+{
+  private:
+    int tokenType;
+    string tokenData;
+  public:
+    void appendChar(char currentChar);
+    void clearData();
+    int type();
+    void type(int);
+    string typeToString();
+    string data();
+    void data(string);
+    bool operator== (token);
+};
 
-#define CALCTEXT_MAX 100
-extern char calcText[CALCTEXT_MAX];
+enum tokenTypes {
+    endOfFileSym = 0, assignSym, readSym, writeSym, identifier,
+    addOp, multOp, leftParen, rightParen, numConst, unknownError,
+    numConstError};
 
 bool calcLexOpen(const char filename[]);
-void calcTextOpen();
-void calcTextClear();
-void calcTextAppend(int currentChar);
-int calcLex();
-bool followingChars(string target, char currentChar);
+token calcLex();
+void match(token expectedToken);
+int calcParse();
+bool followingChars(string target, char currentChar, token curToken);
 string translation(int identifier);
+
 #endif /* calcLex_h */

@@ -1,10 +1,8 @@
 #include "calcLex.h"
 
-char calcText[CALCTEXT_MAX]; //this holds the token name
-static int calcTextPos; //static keyword keeps var around, no re-initialization with each call of the lexer
-
 //this function opens the "filestream" var and returns true or false for success
 ifstream filestream;
+
 bool calcLexOpen(const char filename[])
 {
     filestream.open(filename, ios_base::in);
@@ -12,33 +10,14 @@ bool calcLexOpen(const char filename[])
     return filestream.is_open();
 }
 
-//this function resets the token's info
-void calcTextClear()
-{
-    calcTextPos = 0;
-    calcText[calcTextPos] = 0;
-}
-
-//this function pushes chars onto the token's info cstring
-void calcTextAppend(int currentChar)
-{
-    if(calcTextPos >= (CALCTEXT_MAX - 1) )
-    {
-        return; //ignore the char
-    }
-    calcText[calcTextPos++] = (char)currentChar;
-    calcText[calcTextPos] = 0;
-}
-
 //this function finds the next token and outputs it
-int calcLex()
+token calcLex()
 {
+    token curToken;
     char currentChar;
 
     while(1) //infinite loop, breaks through a return statement
     {
-        //clear out the token info from last time
-        calcTextClear();
         //get the next char!
         currentChar = filestream.get();
 
@@ -51,14 +30,15 @@ int calcLex()
         //if the current char is the end of a file, it returns the end of file symbol
         if(currentChar == EOF)
         {
-            return endOfFileSym;
+            curToken.type(endOfFileSym);
+            return curToken;
         }
 
         //this is the comment logic: if the next chars are /*...
-        if(followingChars("/*", currentChar))
+        if(followingChars("/*", currentChar, curToken))
         {
             //then while it isn't ending the line, or finding the end of comment sentinel...
-            while(currentChar != '\n' && !followingChars("*/", currentChar))
+            while(currentChar != '\n' && !followingChars("*/", currentChar, curToken))
             {
               //move onto the next character
               currentChar = filestream.get();
@@ -68,37 +48,41 @@ int calcLex()
             continue;
         }
         //if the chars ":=" are found, return the assignment symbol
-        if(followingChars(":=", currentChar))
+        if(followingChars(":=", currentChar, curToken))
         {
-            return assignSym;
+            curToken.type(assignSym);
+            curToken.data(":=");
+            return curToken;
         }
         //if the chars "read" are found, return the read symbol
-        if(followingChars("read", currentChar))
+        if(followingChars("read", currentChar, curToken))
         {
-            return readSym;
+            curToken.type(readSym);
+            curToken.data("read");
+            return curToken;
         }
         //if the chars "write" are found, return the write symbol
-        if(followingChars("write", currentChar))
+        if(followingChars("write", currentChar, curToken))
         {
-            return writeSym;
+            curToken.type(writeSym);
+            curToken.data("write");
+            return curToken;
         }
 
-        //this line must go below the followingChars checking, because otherwise you get double chars in your token info
-        calcTextAppend(currentChar);
-
         //checks for identifier strings only starting with letters and underscores
-        if( isalpha(currentChar) || (currentChar == '_')
+        if( isalpha(currentChar) || (currentChar == '_') )
         {
             //messy line, but gets new char and checks for any letters, underscores, and digits
             while( isalnum(currentChar = filestream.get()) || (currentChar == '_'))
             {
-                calcTextAppend(currentChar);
+                curToken.appendChar(currentChar);
             }
 
             //once the currentChar falls off the end of the identifier string, it must hop back to read the next one
             filestream.unget();
             //returns the identifier int
-            return identifier;
+            curToken.type(identifier);
+            return curToken;
         }
 
         //if the current char is a number
@@ -108,62 +92,87 @@ int calcLex()
 			      {
 				        if (currentChar == '.')
 				        {
-                  calcTextAppend(currentChar);
+                  curToken.appendChar(currentChar);
 					        currentChar = filestream.get();
 					        if (!isdigit(currentChar))
 					        {
-						        return 10;
+						        curToken.type(numConstError);
+                    return curToken;
 					        }
 					        while (isdigit(currentChar))
 					        {
-						        calcTextAppend(currentChar);
+						        curToken.appendChar(currentChar);
 						        currentChar = filestream.get();
 					        }
                   filestream.unget();
-					        return numConst;
+					        curToken.type(numConst);
+                  return curToken;
                 }
-                calcTextAppend(currentChar);
+                curToken.appendChar(currentChar);
             }
             filestream.unget();
-            return numConst;
+            curToken.type(numConst);
+            return curToken;
         }
-        if(currentChar == '+' || currentChar == '-')
+        if(currentChar == '+')
         {
-            return addOp;
+            curToken.type(addOp);
+            curToken.data("+");
+            return curToken;
         }
-        if(currentChar == '*' || currentChar == '/')
+        if(currentChar == '-')
         {
-            return multOp;
+            curToken.type(addOp);
+            curToken.data("-");
+            return curToken;
+        }
+        if(currentChar == '*')
+        {
+            curToken.type(multOp);
+            curToken.data("*");
+            return curToken;
+        }
+        if(currentChar == '/')
+        {
+            curToken.type(multOp);
+            curToken.data("/");
+            return curToken;
         }
         if(currentChar == '(')
         {
-            return leftParen;
+            curToken.type(leftParen);
+            curToken.data("(");
+            return curToken;
         }
         if(currentChar == ')')
         {
-            return rightParen;
+            curToken.type(rightParen);
+            curToken.data(")");
+            return curToken;
         }
 
-        return currentChar; //scanner doesn't know what this char is, throw it away
+        curToken.type(unknownError);
+        return curToken;
     }
 
-    return endOfFileSym; //this should never be returned from here
+    curToken.type(unknownError); //this should never get here
+    return curToken;
 }
 
 
 //function that finds if the chars following match a target symbol
-bool followingChars(string target, char currentChar)
+bool followingChars(string target, char currentChar, token curToken)
 {
     for(int x = 0; x < target.length(); x++)
     {
         if(currentChar == target[x])
         {
-            calcTextAppend(currentChar);
+            curToken.appendChar(currentChar);
             currentChar = filestream.get();
         }
         else
         {
-            calcTextClear();
+            curToken.clearData();
             while(x != 0)
             {
               filestream.unget();
