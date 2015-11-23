@@ -10,7 +10,7 @@ int main(int argc, const char *argv[])
     }
 
     // token curToken = calcLex();
-    // while( curToken.type() <= 9 )
+    // while( curToken.type() <= numConst )
     // {
     //     cout << "Token(" << curToken.type() << ", " << curToken.typeToString() << "): " << curToken.data() << endl;
     //     curToken = calcLex();
@@ -19,7 +19,7 @@ int main(int argc, const char *argv[])
     //       break;
     //     }
     // }
-    // if(curToken.type() > 9)
+    // if(curToken.type() > numConst)
     // {
     //   cout << "Unidentified Token! Sorry, I can't continue interpreting your code. "
     //   << "I was passed a token with value: " << curToken.data() << endl;

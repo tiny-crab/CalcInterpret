@@ -5,6 +5,7 @@
 #include <fstream>
 #include <cstring>
 #include <string>
+#include <map>
 
 using namespace std;
 
@@ -22,6 +23,7 @@ class token
     string data();
     void data(string);
     bool operator== (token);
+    bool operator== (int);
 };
 
 enum tokenTypes {
@@ -31,8 +33,8 @@ enum tokenTypes {
 
 bool calcLexOpen(const char filename[]);
 token calcLex();
-bool match(token expectedToken);
-int calcParse();
+//bool match(token expectedToken);
+void calcParse();
 bool followingChars(string target, char currentChar, token curToken);
 
 #endif /* calcLex_h */

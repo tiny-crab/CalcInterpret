@@ -1,7 +1,4 @@
-identify := zak
-/* what is going on here */
-amy := 3333
-zak := 4444
-write zak
-read amy
-write amy
+read Zak
+Amy := 1 + Zak
+write Amy
+write Zak
