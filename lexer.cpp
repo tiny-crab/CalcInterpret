@@ -124,7 +124,7 @@ token calcLex()
         }
         if(currentChar == '-')
         {
-            curToken.type(addOp);
+            curToken.type(subOp);
             curToken.data("-");
             return curToken;
         }
@@ -136,7 +136,7 @@ token calcLex()
         }
         if(currentChar == '/')
         {
-            curToken.type(multOp);
+            curToken.type(divOp);
             curToken.data("/");
             return curToken;
         }

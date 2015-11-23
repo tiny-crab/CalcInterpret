@@ -9,21 +9,23 @@ int main(int argc, const char *argv[])
         exit(1);
     }
 
-    token curToken = calcLex();
-    while( curToken.type() <= 9 )
-    {
-        cout << "Token(" << curToken.type() << ", " << curToken.typeToString() << "): " << curToken.data() << endl;
-        curToken = calcLex();
-        if(curToken.type() == endOfFileSym)
-        {
-          break;
-        }
-    }
-    if(curToken.type() > 9)
-    {
-      cout << "Unidentified Token! Sorry, I can't continue interpreting your code. "
-      << "I was passed a token with value: " << curToken.data() << endl;
-    }
+    // token curToken = calcLex();
+    // while( curToken.type() <= 9 )
+    // {
+    //     cout << "Token(" << curToken.type() << ", " << curToken.typeToString() << "): " << curToken.data() << endl;
+    //     curToken = calcLex();
+    //     if(curToken.type() == endOfFileSym)
+    //     {
+    //       break;
+    //     }
+    // }
+    // if(curToken.type() > 9)
+    // {
+    //   cout << "Unidentified Token! Sorry, I can't continue interpreting your code. "
+    //   << "I was passed a token with value: " << curToken.data() << endl;
+    // }
+
+    calcParse();
 
     return 0;
 }

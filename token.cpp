@@ -31,12 +31,14 @@ string token::typeToString()
     case 3: return "Write Symbol";
     case 4: return "Identifier";
     case 5: return "Add Operation";
-    case 6: return "Multiplication Operation";
-    case 7: return "Left Parenthesis";
-    case 8: return "Right Parenthesis";
-    case 9: return "Numeric Constant";
-    case 10: return "Unknown Token Error";
-    case 11: return "Issue with numConsts";
+    case 6: return "Subtract Operation";
+    case 7: return "Multiplication Operation";
+    case 8: return "Division Operation";
+    case 9: return "Left Parenthesis";
+    case 10: return "Right Parenthesis";
+    case 11: return "Numeric Constant";
+    case 12: return "Unknown Token Error";
+    case 13: return "Issue with numConsts";
     default: return "This error isn't known.";
   }
 }
@@ -53,7 +55,19 @@ void token::data(string change)
 
 bool token::operator==(token compareToken)
 {
-  if(tokenData == compareToken.tokenData)
+  if(tokenType == compareToken.type())
+  {
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+}
+
+bool token::operator==(int compareType)
+{
+  if(tokenType == compareType)
   {
     return true;
   }

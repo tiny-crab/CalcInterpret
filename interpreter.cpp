@@ -6,8 +6,8 @@
 // stmtList -> stmt stmtList
 //          -> nothing
 //
-// stmt -> ID := expr
-//      -> read ID
+// stmt -> identifier := expr
+//      -> read identifier
 //      -> write expr
 //
 // expr -> term termTail
@@ -23,7 +23,7 @@
 //          -> nothing
 //
 // fctr -> ( expr )
-//      -> ID
+//      -> identifier
 //      -> numConst
 
 //function prototyping
@@ -38,51 +38,205 @@ void fctrTail();
 void match();
 
 token curToken;
+map<string, double> symbolTable;
 
-int calcParse()
+//function to initiate the parsing
+void calcParse()
 {
   curToken = calcLex();
   prgm();
-  return 0;
 }
 
-void match(int expectedToken)
+//function to check token and see if it matches
+bool match(int expectedToken)
 {
-  if(curToken == expectedToken)
+  //operator overloaded to check for token type
+  if(curToken.type() == expectedToken)
   {
-    if(curToken != endOfFileSym)
+    //if the current token is not an end of file token, keep on trucking
+    if(curToken.type() != endOfFileSym)
     {
-      curToken == calcLex();
+      curToken = calcLex();
+    }
+    return true;
+  }
+  //if its not the expected token, shut down the interpreter!
+  else
+  {
+    cout << "Token " << expectedToken << " expected, but instead found: " << curToken.data() << endl;
+    return false;
+  }
+}
+
+void prgm()
+{
+  stmtList();
+  match(endOfFileSym);
+}
+
+void stmtList()
+{
+  cout << "Found a statement list." << endl;
+  stmt();
+  stmtList();
+}
+
+void stmt()
+{
+  cout << "Found a statement" << endl;
+  if(curToken == identifier)
+  {
+    //token to save the identifier name for the table
+    token symbolToken = curToken;
+    //getting the assignment operator out of the way for curToken
+    token nextToken = calcLex();
+    if(nextToken == assignSym)
+    {
+      double calculation = expr();
+      //this line sets the calculation to an existing key
+      //or a nonexistent key is initialized with value = "calculation"
+      symbolTable[symbolToken.data()] = calculation;
     }
     else
     {
-      cout << "Token " << expectedToken << " expected, but instead found: " << curToken.data() << endl;
+      return;
+    }
+  }
+  if(curToken == readSym)
+  {
+    token nextToken = calcLex();
+    if(nextToken == identifier)
+    {
+      double varValue;
+      cout << "Please enter a value for variable " << nextToken.data() << ": ";
+      //this next line might be syntactically incorrect
+      cin >> varValue;
+
+      symbolTable[nextToken.data()] = varValue;
+    }
+    else
+    {
+      return;
+    }
+  }
+  if(curToken.type() == writeSym)
+  {
+    token nextToken = calcLex();
+    if(nextToken == identifier)
+    {
+      //if the symbol table has the identifier token as a key
+      if(symbolTable.count(nextToken.data()))
+      {
+        cout << nextToken.data() << " is set as: " << symbolTable[nextToken.data()] << endl;
+      }
+      else
+      {
+        cout << "You didn't declare " << nextToken.data() << " so initializing it to 1." << endl;
+        //setting a new variable up in the symbol table
+        symbolTable[nextToken.data()] = 1;
+        cout << nextToken.data() << " is set as: " << symbolTable[nextToken.data()] << endl;
+      }
+    }
+    else
+    {
+      return;
     }
   }
 }
 
-int prgm()
+double expr()
 {
-  int val = stmtList();
-  match(endOfFileSym);
-
-  cout << "The grammar says: " << val << endl;
-  return val;
+  curToken = calcLex();
+  double leftValue = term();
+  double fullValue = termTail(leftValue);
+  return fullValue;
 }
 
-int stmtList()
+double term()
 {
-  int val1 = stmt();
-  int val2 = stmtList(val1);
-  return val2;
+  curToken = calcLex();
+  double leftValue = fctr();
+  double fullValue = fctrTail(leftValue);
+  return fullValue;
 }
 
-int stmt()
+double termTail(double leftSide)
 {
-
+  curToken = calcLex();
+  if(curToken == addOp)
+  {
+    double firstValue = term();
+    double fullValue = termTail(leftSide + firstValue);
+    return fullValue;
+  }
+  if(curToken == subOp)
+  {
+    double firstValue = term();
+    double fullValue = termTail(leftSide - firstValue);
+    return fullValue;
+  }
+  else
+  {
+    //there is no tail!
+    return leftSide;
+  }
 }
 
-bool followingTokens()
+double fctr()
 {
+  curToken = calcLex();
+  if(curToken == leftParen)
+  {
+    double expressionVal = expr();
+    curToken = calcLex();
+    if(curToken == rightParen)
+    {
+      return expressionVal;
+    }
+    else
+    {
+      cout << "You forgot a parenthesis so I'm crashing now." << endl;
+    }
+  }
+  else if(curToken == identifier)
+  {
+    if(symbolTable.count(curToken.data()))
+    {
+      return symbolTable[curToken.data()]
+    }
+    else
+    {
+      return 1;
+    }
+  }
+  else if(curToken == numConst)
+  {
+    return curToken.data();
+  }
+  else
+  {
+    return 1;
+  }
+}
 
+double fctrTail(double leftSide)
+{
+  curToken = calcLex();
+  if(curToken == multOp)
+  {
+    double firstValue = fctr();
+    double fullValue = fctrTail(leftSide * firstValue);
+    return fullValue;
+  }
+  if(curToken == divOp)
+  {
+    double firstValue = fctr();
+    double fullValue = fctrTail(leftSide / firstValue);
+    return fullValue;
+  }
+  else
+  {
+    //there is no tail!
+    return leftSide;
+  }
 }

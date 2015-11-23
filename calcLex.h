@@ -26,12 +26,12 @@ class token
 
 enum tokenTypes {
     endOfFileSym = 0, assignSym, readSym, writeSym, identifier,
-    addOp, multOp, leftParen, rightParen, numConst, unknownError,
+    addOp, subOp, multOp, divOp, leftParen, rightParen, numConst, unknownError,
     numConstError};
 
 bool calcLexOpen(const char filename[]);
 token calcLex();
-void match(token expectedToken);
+bool match(token expectedToken);
 int calcParse();
 bool followingChars(string target, char currentChar, token curToken);
 
