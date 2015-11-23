@@ -69,6 +69,7 @@ void calcParse()
 
 void prgm()
 {
+  currentToken = calcLex();
   stmtList();
   currentToken = calcLex();
   if(currentToken == endOfFileSym)
@@ -79,15 +80,19 @@ void prgm()
 
 void stmtList()
 {
+  //if the first statement is valid, keep moving through the program
   if(stmt())
   {
     stmtList();
+  }
+  else
+  {
+    cout << "Didn't get a valid statement :( " << currentToken.data() << endl;
   }
 }
 
 bool stmt()
 {
-  currentToken = calcLex();
   //if the first token in this statement is an identifier...
   if(currentToken == identifier)
   {
@@ -97,6 +102,7 @@ bool stmt()
     currentToken = calcLex();
     if(currentToken == assignSym)
     {
+      currentToken = calcLex();
       //calculate the expression on the opposite side of the identifier
       double calculation = expr();
       //this line sets the calculation to an existing key
@@ -112,7 +118,7 @@ bool stmt()
     }
   }
   //if the first token in this statement is a read symbol...
-  if(currentToken == readSym)
+  else if(currentToken == readSym)
   {
     //get the next token in the statement
     currentToken = calcLex();
@@ -127,6 +133,7 @@ bool stmt()
       //this line sets the calculation to an existing key
       //or a nonexistent key is initialized with value = "calculation"
       symbolTable[currentToken.data()] = varValue;
+      currentToken = calcLex();
       return true;
     }
     else
@@ -135,9 +142,8 @@ bool stmt()
       return false;
     }
   }
-  if(currentToken.type() == writeSym)
+  else if(currentToken.type() == writeSym)
   {
-    cout << "found a write symbol" << endl;
     currentToken = calcLex();
     if(currentToken == identifier)
     {
@@ -160,39 +166,46 @@ bool stmt()
       return false;
     }
   }
+  cout << "Didn't get a readSym, writeSym, or identifier. Instead: " << currentToken.typeToString() << endl;
   return false;
 }
 
 double expr()
 {
-  cout << "Tried to calculate something" << endl;
-  currentToken = calcLex();
+  cout << "In the expression function, currentToken = " << currentToken.typeToString() << endl;
   double leftValue = term();
   double fullValue = termTail(leftValue);
+  cout << "I calculated fullValue: " << fullValue << endl;
   return fullValue;
 }
 
 double term()
 {
-  currentToken = calcLex();
+  cout << "In the term function, currentToken = " << currentToken.typeToString() << endl;
   double leftValue = fctr();
+  currentToken = calcLex();
   double fullValue = fctrTail(leftValue);
+  cout << "I calculated fullValue: " << fullValue << endl;
   return fullValue;
 }
 
 double termTail(double leftSide)
 {
-  currentToken = calcLex();
+  cout << "In the termtail function, currentToken = " << currentToken.typeToString() << endl;
   if(currentToken == addOp)
   {
+    currentToken = calcLex();
     double firstValue = term();
     double fullValue = termTail(leftSide + firstValue);
+    cout << "I calculated fullValue: " << fullValue << endl;
     return fullValue;
   }
-  if(currentToken == subOp)
+  else if(currentToken == subOp)
   {
+    currentToken = calcLex();
     double firstValue = term();
     double fullValue = termTail(leftSide - firstValue);
+    cout << "I calculated fullValue: " << fullValue << endl;
     return fullValue;
   }
   else
@@ -204,9 +217,10 @@ double termTail(double leftSide)
 
 double fctr()
 {
-  currentToken = calcLex();
+  cout << "In the fctr function, currentToken = " << currentToken.typeToString() << endl;
   if(currentToken == leftParen)
   {
+    currentToken = calcLex();
     double expressionVal = expr();
     currentToken = calcLex();
     if(currentToken == rightParen)
@@ -221,6 +235,7 @@ double fctr()
   }
   else if(currentToken == identifier)
   {
+    currentToken = calcLex();
     if(symbolTable.count(currentToken.data()))
     {
       return symbolTable[currentToken.data()];
@@ -242,17 +257,21 @@ double fctr()
 
 double fctrTail(double leftSide)
 {
-  currentToken = calcLex();
+  cout << "In the fctrtail function, currentToken = " << currentToken.typeToString() << endl;
   if(currentToken == multOp)
   {
+    currentToken = calcLex();
     double firstValue = fctr();
     double fullValue = fctrTail(leftSide * firstValue);
+    cout << "I calculated fullValue: " << fullValue << endl;
     return fullValue;
   }
   if(currentToken == divOp)
   {
+    currentToken = calcLex();
     double firstValue = fctr();
     double fullValue = fctrTail(leftSide / firstValue);
+    cout << "I calculated fullValue: " << fullValue << endl;
     return fullValue;
   }
   else
