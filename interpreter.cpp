@@ -66,8 +66,8 @@ void prgm()
   else
   {
     //basic exception message
-    cout << "Received unexpected token of type: " << lastToken.typeToString()
-    << " and data: " << lastToken.data() << endl;
+    cout << "Received unexpected token of type: \'" << lastToken.typeToString()
+    << "\' and data: \'" << lastToken.data() << "\'" << endl;
   }
 }
 
@@ -119,12 +119,12 @@ bool stmt()
     {
       //setting up a var so that the user can save their input
       double varValue;
-      cout << "Please enter a value for variable " << currentToken.data() << ": ";
+      cout << "Please enter a numeric value for variable " << currentToken.data() << ": ";
       cin >> varValue;
-      while(cin.fail())
+      if(cin.fail())
       {
-        cout << "Please input a numeric value for variable " << currentToken.data() << ": ";
-        cin >> varValue;
+        cout << "This isn't a double. Try again." << endl;
+        return false;
       }
 
       //this line sets the calculation to an existing key
