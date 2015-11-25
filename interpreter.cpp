@@ -35,49 +35,44 @@ double term();
 double termTail(double leftSide);
 double fctr();
 double fctrTail(double leftSide);
-//void match();
 
+//global token var to hold things properly
 token currentToken;
+//map that holds the dynamically allocated variables
 map<string, double> symbolTable;
 
 //function to initiate the parsing
 void calcParse()
 {
+  //start program off by getting the first token
+  currentToken = calcLex();
   prgm();
 }
 
-//function to check token and see if it matches
-/*bool match(int expectedToken)
-{
-  //operator overloaded to check for token type
-  if(currentToken.type() == expectedToken)
-  {
-    //if the current token is not an end of file token, keep on trucking
-    if(currentToken.type() != endOfFileSym)
-    {
-      currentToken = calcLex();
-    }
-    return true;
-  }
-  //if its not the expected token, shut down the interpreter!
-  else
-  {
-    cout << "Token " << expectedToken << " expected, but instead found: " << currentToken.data() << endl;
-    return false;
-  }
-}*/
-
+//prgm -> stmtList
 void prgm()
 {
-  currentToken = calcLex();
+  //initiate the stmtList terminal symbol
   stmtList();
+  //can I do something to eliminate this variable?
+  token lastToken = currentToken;
+  //once done with stmt list, iterate to the end of file symbol
   currentToken = calcLex();
+
   if(currentToken == endOfFileSym)
   {
-    cout << "We made it to the end of the program!" << endl;
+    return;
+  }
+  else
+  {
+    //basic exception message
+    cout << "Received unexpected token of type: " << lastToken.typeToString()
+    << " and data: " << lastToken.data() << endl;
   }
 }
 
+// stmtList -> stmt stmtList
+//          -> nothing
 void stmtList()
 {
   //if the first statement is valid, keep moving through the program
@@ -85,12 +80,11 @@ void stmtList()
   {
     stmtList();
   }
-  else
-  {
-    cout << "Didn't get a valid statement :( " << currentToken.data() << endl;
-  }
 }
 
+// stmt -> identifier := expr
+//      -> read identifier
+//      -> write expr
 bool stmt()
 {
   //if the first token in this statement is an identifier...
@@ -112,8 +106,6 @@ bool stmt()
     }
     else
     {
-      //in this language, an identifier not followed by an assignment op doesn't make sense
-      cout << "The token isn't an assignment symbol. It's a: " << currentToken.typeToString() << endl;
       return false;
     }
   }
@@ -129,6 +121,11 @@ bool stmt()
       double varValue;
       cout << "Please enter a value for variable " << currentToken.data() << ": ";
       cin >> varValue;
+      while(cin.fail())
+      {
+        cout << "Please input a numeric value for variable " << currentToken.data() << ": ";
+        cin >> varValue;
+      }
 
       //this line sets the calculation to an existing key
       //or a nonexistent key is initialized with value = "calculation"
@@ -138,7 +135,6 @@ bool stmt()
     }
     else
     {
-      cout << "I found a read symbol that isn't followed by an identifier" << endl;
       return false;
     }
   }
@@ -148,17 +144,14 @@ bool stmt()
     if(currentToken == identifier)
     {
       //if the symbol table has the identifier token as a key
-      if(symbolTable.count(currentToken.data()))
-      {
-        cout << currentToken.data() << " is set as: " << symbolTable[currentToken.data()] << endl;
-      }
-      else
+      if(!symbolTable.count(currentToken.data()))
       {
         cout << "You didn't declare " << currentToken.data() << " so I'm initializing it to 1." << endl;
         //setting a new variable up in the symbol table
         symbolTable[currentToken.data()] = 1;
-        cout << currentToken.data() << " is set as: " << symbolTable[currentToken.data()] << endl;
       }
+      cout << currentToken.data() << " is set as: " << symbolTable[currentToken.data()] << endl;
+      currentToken = calcLex();
       return true;
     }
     else
@@ -166,38 +159,35 @@ bool stmt()
       return false;
     }
   }
-  cout << "Didn't get a readSym, writeSym, or identifier. Instead: " << currentToken.typeToString() << endl;
   return false;
 }
 
+// expr -> term termTail
 double expr()
 {
-  cout << "In the expression function, currentToken = " << currentToken.typeToString() << endl;
   double leftValue = term();
   double fullValue = termTail(leftValue);
-  cout << "I calculated fullValue: " << fullValue << endl;
   return fullValue;
 }
 
+// term -> fctr fctrTail
 double term()
 {
-  cout << "In the term function, currentToken = " << currentToken.typeToString() << endl;
   double leftValue = fctr();
-  currentToken = calcLex();
   double fullValue = fctrTail(leftValue);
-  cout << "I calculated fullValue: " << fullValue << endl;
   return fullValue;
 }
 
+// termTail -> + term termTail
+//          -> - term termTail
+//          -> nothing
 double termTail(double leftSide)
 {
-  cout << "In the termtail function, currentToken = " << currentToken.typeToString() << endl;
   if(currentToken == addOp)
   {
     currentToken = calcLex();
     double firstValue = term();
     double fullValue = termTail(leftSide + firstValue);
-    cout << "I calculated fullValue: " << fullValue << endl;
     return fullValue;
   }
   else if(currentToken == subOp)
@@ -205,7 +195,6 @@ double termTail(double leftSide)
     currentToken = calcLex();
     double firstValue = term();
     double fullValue = termTail(leftSide - firstValue);
-    cout << "I calculated fullValue: " << fullValue << endl;
     return fullValue;
   }
   else
@@ -217,37 +206,41 @@ double termTail(double leftSide)
 
 double fctr()
 {
-  cout << "In the fctr function, currentToken = " << currentToken.typeToString() << endl;
   if(currentToken == leftParen)
   {
     currentToken = calcLex();
     double expressionVal = expr();
-    currentToken = calcLex();
     if(currentToken == rightParen)
     {
+      currentToken = calcLex();
       return expressionVal;
     }
     else
     {
-      cout << "You forgot a parenthesis so I'm crashing now." << endl;
+      cout << "I couldn't find a matching right parenthesis." << endl;
       return 1;
     }
   }
   else if(currentToken == identifier)
   {
-    currentToken = calcLex();
+    double returnVar;
     if(symbolTable.count(currentToken.data()))
     {
-      return symbolTable[currentToken.data()];
+      returnVar = symbolTable[currentToken.data()];
     }
     else
     {
-      return 1;
+      symbolTable[currentToken.data()] = 1;
+      returnVar = 1;
     }
+    currentToken = calcLex();
+    return returnVar;
   }
   else if(currentToken == numConst)
   {
-    return stod(currentToken.data());
+    double returnVar = stod(currentToken.data());
+    currentToken = calcLex();
+    return returnVar;
   }
   else
   {
@@ -257,21 +250,18 @@ double fctr()
 
 double fctrTail(double leftSide)
 {
-  cout << "In the fctrtail function, currentToken = " << currentToken.typeToString() << endl;
   if(currentToken == multOp)
   {
     currentToken = calcLex();
     double firstValue = fctr();
     double fullValue = fctrTail(leftSide * firstValue);
-    cout << "I calculated fullValue: " << fullValue << endl;
     return fullValue;
   }
-  if(currentToken == divOp)
+  else if(currentToken == divOp)
   {
     currentToken = calcLex();
     double firstValue = fctr();
     double fullValue = fctrTail(leftSide / firstValue);
-    cout << "I calculated fullValue: " << fullValue << endl;
     return fullValue;
   }
   else
